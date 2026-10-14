@@ -338,7 +338,7 @@ body.lqonly section.sec > .sechead .secbtn{display:none!important}
   function norm(t){ return t.replace(/\s+/g,' ').trim().toLowerCase(); }
   function body(t){ return norm(t.replace(STRIP,'')); }
   function ansText(q){
-    var a=q.querySelector('.reveal > .ans'); if(!a) return '';
+    var a=q.querySelector(':scope > .reveal > .ans'); if(!a) return '';
     var c=a.cloneNode(true); c.querySelectorAll('.lab').forEach(function(l){ l.remove(); });
     return c.textContent.trim();
   }
@@ -346,8 +346,9 @@ body.lqonly section.sec > .sechead .secbtn{display:none!important}
     var ans=ansText(q); if(!ans) return null;
     var lets=lis.map(function(li){ var m=li.textContent.match(LILET); return m?m[1].toUpperCase():null; });
     if(lets.some(function(l){ return !l; }) || new Set(lets).size!==lets.length) lets=lis.map(function(_,i){ return String.fromCharCode(65+i); });
+    // (every lookup is :scope-d so learning questions nested in a dropdown never answer for their parent)
     // a key note that says "Confirmed on re-check; correct answer: X" overrides the printed source key
-    var fl=[].map.call(q.querySelectorAll('.reveal .flag'),function(f){ return f.textContent; }).join(' ');
+    var fl=[].map.call(q.querySelectorAll(':scope > .reveal .flag'),function(f){ return f.textContent; }).join(' ');
     if(/no option (is )?correct/i.test(fl)) return null;
     var cf=fl.match(/Confirmed on re-check; correct answer:\s*(\(?\s*[A-Za-z]\s*\)?(?:\s*(?:,|&|and)\s*\(?\s*[A-Za-z]\s*\)?)*)\s*[.)]/);
     if(cf){ var ci=(cf[1].match(/[A-Za-z]+/g)||[]).filter(function(w){ return w.length===1; }).map(function(w){ return lets.indexOf(w.toUpperCase()); });
@@ -381,21 +382,21 @@ body.lqonly section.sec > .sechead .secbtn{display:none!important}
       if(picked.indexOf(i)>=0) li.classList.add(key.indexOf(i)>=0?'qz-right':'qz-wrong');
       li.setAttribute('aria-disabled','true');
     });
-    var v=q.querySelector('.qz-verdict');
+    var v=q.querySelector(':scope > .qz-verdict');
     var names=key.map(function(i){ return letter(lis,i); }).join(' and ');
     v.innerHTML=(ok?'<b>✓ Correct</b>':'<b>✗ Incorrect</b> · the answer is '+names)+' <button type="button" class="qz-again">Try again</button>';
     v.hidden=false;
-    var c=q.querySelector('.qz-check'); if(c) c.hidden=true;
+    var c=q.querySelector(':scope > .qz-check'); if(c) c.hidden=true;
     q.classList.add('open');
-    var ex=q.querySelector('.reveal > details.expl');
-    if(ex && !q.querySelector('.reveal > .why') && !ex.open){ ex.open=true; ex.setAttribute('data-qz',''); }
+    var ex=q.querySelector(':scope > .reveal > details.expl');
+    if(ex && !q.querySelector(':scope > .reveal > .why') && !ex.open){ ex.open=true; ex.setAttribute('data-qz',''); }
   }
   function reset(q){
     q.classList.remove('qz-done','qz-ok','qz-no','open');
     q._lis.forEach(function(li){ li.classList.remove('qz-sel','qz-key','qz-right','qz-wrong'); li.removeAttribute('aria-disabled'); });
-    var v=q.querySelector('.qz-verdict'); v.hidden=true; v.innerHTML='';
-    var c=q.querySelector('.qz-check'); if(c){ c.hidden=false; c.disabled=true; }
-    var ex=q.querySelector('.reveal > details.expl[data-qz]'); if(ex){ ex.open=false; ex.removeAttribute('data-qz'); }
+    var v=q.querySelector(':scope > .qz-verdict'); v.hidden=true; v.innerHTML='';
+    var c=q.querySelector(':scope > .qz-check'); if(c){ c.hidden=false; c.disabled=true; }
+    var ex=q.querySelector(':scope > .reveal > details.expl[data-qz]'); if(ex){ ex.open=false; ex.removeAttribute('data-qz'); }
   }
   var n=0;
   document.querySelectorAll('article.q').forEach(function(q){
@@ -428,7 +429,7 @@ body.lqonly section.sec > .sechead .secbtn{display:none!important}
     var i=q._lis.indexOf(li);
     if(q.classList.contains('qz-multi')){
       li.classList.toggle('qz-sel');
-      q.querySelector('.qz-check').disabled=!q.querySelector('.qz-sel');
+      q.querySelector(':scope > .qz-check').disabled=!q.querySelector(':scope > ol.opts > li.qz-sel');
     } else grade(q,[i]);
   }
   // capture phase: runs before the page's tap-to-reveal handler, which would otherwise toggle the answer open
